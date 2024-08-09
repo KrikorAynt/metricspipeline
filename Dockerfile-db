@@ -1,0 +1,12 @@
+FROM postgres:15
+
+# Set environment variables for the database
+ENV POSTGRES_DB=metrics_db
+ENV POSTGRES_USER=metrics_user
+ENV POSTGRES_PASSWORD=metrics_pass
+
+# Persist data on the host machine
+VOLUME ["/var/lib/postgresql/data"]
+
+# Expose PostgreSQL port
+EXPOSE 5432
