@@ -6,13 +6,10 @@ import os
 
 app = FastAPI()
 
-# Database connection settings
 DATABASE_URL = os.getenv("DATABASE_URL")
 
-# Connect to PostgreSQL
 conn = psycopg2.connect(DATABASE_URL, cursor_factory=RealDictCursor)
 cursor = conn.cursor()
-
 
 class Metric(BaseModel):
     user_id: str
@@ -20,11 +17,9 @@ class Metric(BaseModel):
     value: float
     timestamp: str
 
-
 @app.post("/ingest/")
 def ingest_metric(metric: Metric):
     try:
-        # Check if the user exists
         cursor.execute(
             """
             SELECT 1 FROM users WHERE user_id = %s
@@ -34,7 +29,6 @@ def ingest_metric(metric: Metric):
         if cursor.fetchone() is None:
             raise HTTPException(status_code=404, detail="User not found.")
 
-        # Get the most recent session_id for the given user_id
         cursor.execute(
             """
             SELECT session_id FROM sessions WHERE user_id = %s ORDER BY start_time DESC LIMIT 1
@@ -43,7 +37,6 @@ def ingest_metric(metric: Metric):
         )
         session = cursor.fetchone()
         if not session:
-            # Create a new session if none exists
             cursor.execute(
                 """
                 INSERT INTO sessions (user_id, start_time)
@@ -63,7 +56,7 @@ def ingest_metric(metric: Metric):
             (session_id, metric.timestamp, metric.metric_type, metric.value)
         )
         conn.commit()
-        return {"message": "Metric ingested successfully!"}
+        return {"message": "Metric stored successfully!"}
     except Exception as e:
         conn.rollback()
         raise HTTPException(status_code=500, detail=str(e))
@@ -71,4 +64,4 @@ def ingest_metric(metric: Metric):
 
 @app.get("/")
 def read_root():
-    return {"message": "Metrics Pipeline API"}
+    return {"message": "Krikor's Metrics Pipeline API"}
